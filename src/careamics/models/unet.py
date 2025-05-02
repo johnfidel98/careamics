@@ -283,6 +283,18 @@ class UnetDecoder(nn.Module):
         ValueError:
             If either of `A` or `B`'s channel axis is not divisible by `groups`.
         """
+        def center_crop(tensor, target_size):
+            _, _, h, w = tensor.shape
+            th, tw = target_size
+            x1 = (h - th) // 2
+            y1 = (w - tw) // 2
+            return tensor[:, :, x1:x1+th, y1:y1+tw]
+        
+        if A.shape[2:] != B.shape[2:]:
+            target_size = (min(A.shape[2], B.shape[2]), min(A.shape[3], B.shape[3]))
+            A = center_crop(A, target_size)
+            B = center_crop(B, target_size)
+            
         if (A.shape[1] % groups != 0) or (B.shape[1] % groups != 0):
             raise ValueError(f"Number of channels not divisible by {groups} groups.")
 
